@@ -1,12 +1,14 @@
 """ClassiFinder SDK exception hierarchy."""
 
-from typing import Any, Optional
+from __future__ import annotations
+
+from typing import Any
 
 
 class ClassiFinderError(Exception):
     """Base exception for all ClassiFinder SDK errors."""
 
-    def __init__(self, message: str, status_code: Optional[int] = None) -> None:
+    def __init__(self, message: str, status_code: int | None = None) -> None:
         self.message = message
         self.status_code = status_code
         super().__init__(message)

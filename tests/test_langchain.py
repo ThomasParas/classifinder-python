@@ -4,11 +4,12 @@ import httpx
 import pytest
 import respx
 
+from classifinder._exceptions import ServerError
 from conftest import (
+    REDACT_RESPONSE_JSON,
+    SCAN_RESPONSE_JSON,
     TEST_API_KEY,
     TEST_BASE_URL,
-    SCAN_RESPONSE_JSON,
-    REDACT_RESPONSE_JSON,
 )
 
 # Build a clean-text scan response (no findings)
@@ -126,49 +127,67 @@ class TestFailOpen:
     @respx.mock
     def test_fail_open_passes_text_on_api_error(self):
         """When fail_open=True (default), API errors pass text through."""
+        error_body = {"error": {"code": "internal_error", "message": "boom"}}
         respx.post(f"{TEST_BASE_URL}/v1/redact").mock(
-            return_value=httpx.Response(500, json={"error": {"code": "internal_error", "message": "boom"}})
+            return_value=httpx.Response(500, json=error_body)
         )
-        guard = ClassiFinderGuard(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="redact", max_retries=0)
+        guard = ClassiFinderGuard(
+            api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="redact", max_retries=0
+        )
         result = guard.invoke("text with maybe secrets")
         assert result == "text with maybe secrets"
 
     @respx.mock
     def test_fail_open_false_raises_on_api_error(self):
         """When fail_open=False, API errors propagate."""
-        from classifinder._exceptions import ServerError
+        error_body = {"error": {"code": "internal_error", "message": "boom"}}
         respx.post(f"{TEST_BASE_URL}/v1/redact").mock(
-            return_value=httpx.Response(500, json={"error": {"code": "internal_error", "message": "boom"}})
+            return_value=httpx.Response(500, json=error_body)
         )
-        guard = ClassiFinderGuard(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="redact", fail_open=False, max_retries=0)
+        guard = ClassiFinderGuard(
+            api_key=TEST_API_KEY,
+            base_url=TEST_BASE_URL,
+            mode="redact",
+            fail_open=False,
+            max_retries=0,
+        )
         with pytest.raises(ServerError):
             guard.invoke("text with maybe secrets")
 
     @respx.mock
     def test_fail_open_still_raises_secrets_detected(self):
-        """fail_open should NOT swallow SecretsDetectedError — that's intentional blocking."""
+        """fail_open should NOT swallow SecretsDetectedError."""
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
             return_value=httpx.Response(200, json=SCAN_RESPONSE_JSON)
         )
-        guard = ClassiFinderGuard(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="block", fail_open=True)
+        guard = ClassiFinderGuard(
+            api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="block", fail_open=True
+        )
         with pytest.raises(SecretsDetectedError):
             guard.invoke("text with secrets")
 
     @respx.mock
     def test_fail_open_on_network_error(self):
         """Network errors should also pass through when fail_open=True."""
-        respx.post(f"{TEST_BASE_URL}/v1/redact").mock(side_effect=httpx.ConnectError("refused"))
-        guard = ClassiFinderGuard(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="redact", max_retries=0)
+        respx.post(f"{TEST_BASE_URL}/v1/redact").mock(
+            side_effect=httpx.ConnectError("refused")
+        )
+        guard = ClassiFinderGuard(
+            api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="redact", max_retries=0
+        )
         result = guard.invoke("text with maybe secrets")
         assert result == "text with maybe secrets"
 
     @respx.mock
     async def test_async_fail_open(self):
         """Async guard should also fail open."""
+        error_body = {"error": {"code": "internal_error", "message": "boom"}}
         respx.post(f"{TEST_BASE_URL}/v1/redact").mock(
-            return_value=httpx.Response(500, json={"error": {"code": "internal_error", "message": "boom"}})
+            return_value=httpx.Response(500, json=error_body)
         )
-        guard = ClassiFinderGuard(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="redact", max_retries=0)
+        guard = ClassiFinderGuard(
+            api_key=TEST_API_KEY, base_url=TEST_BASE_URL, mode="redact", max_retries=0
+        )
         result = await guard.ainvoke("text with maybe secrets")
         assert result == "text with maybe secrets"
 

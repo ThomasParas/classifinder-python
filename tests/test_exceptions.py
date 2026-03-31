@@ -4,15 +4,25 @@ import httpx
 import pytest
 import respx
 
+from classifinder._client import ClassiFinder
 from classifinder._exceptions import (
-    ClassiFinderError,
-    AuthenticationError,
-    RateLimitError,
-    InvalidRequestError,
-    ForbiddenError,
-    ServerError,
     APIConnectionError,
+    AuthenticationError,
+    ClassiFinderError,
+    ForbiddenError,
+    InvalidRequestError,
+    RateLimitError,
     SecretsDetectedError,
+    ServerError,
+)
+from conftest import (
+    ERROR_400_JSON,
+    ERROR_401_JSON,
+    ERROR_403_JSON,
+    ERROR_429_JSON,
+    ERROR_500_JSON,
+    TEST_API_KEY,
+    TEST_BASE_URL,
 )
 
 
@@ -74,17 +84,6 @@ class TestExceptionHierarchy:
         assert e.status_code is None
 
 
-from conftest import (
-    TEST_API_KEY,
-    TEST_BASE_URL,
-    ERROR_401_JSON,
-    ERROR_400_JSON,
-    ERROR_403_JSON,
-    ERROR_429_JSON,
-    ERROR_500_JSON,
-)
-from classifinder._client import ClassiFinder
-
 
 class TestErrorMapping:
     @respx.mock
@@ -92,18 +91,26 @@ class TestErrorMapping:
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
             return_value=httpx.Response(401, json=ERROR_401_JSON)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client:
-            with pytest.raises(AuthenticationError, match="Missing"):
-                client.scan("text")
+        with (
+            ClassiFinder(
+                api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0
+            ) as client,
+            pytest.raises(AuthenticationError, match="Missing"),
+        ):
+            client.scan("text")
 
     @respx.mock
     def test_400_raises_invalid_request_error(self):
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
             return_value=httpx.Response(400, json=ERROR_400_JSON)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client:
-            with pytest.raises(InvalidRequestError) as exc_info:
-                client.scan("text")
+        with (
+            ClassiFinder(
+                api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0
+            ) as client,
+            pytest.raises(InvalidRequestError) as exc_info,
+        ):
+            client.scan("text")
         assert exc_info.value.code == "payload_too_large"
 
     @respx.mock
@@ -111,9 +118,13 @@ class TestErrorMapping:
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
             return_value=httpx.Response(403, json=ERROR_403_JSON)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client:
-            with pytest.raises(ForbiddenError) as exc_info:
-                client.scan("text")
+        with (
+            ClassiFinder(
+                api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0
+            ) as client,
+            pytest.raises(ForbiddenError) as exc_info,
+        ):
+            client.scan("text")
         assert exc_info.value.code == "tier_limit_exceeded"
 
     @respx.mock
@@ -121,9 +132,13 @@ class TestErrorMapping:
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
             return_value=httpx.Response(429, json=ERROR_429_JSON)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client:
-            with pytest.raises(RateLimitError) as exc_info:
-                client.scan("text")
+        with (
+            ClassiFinder(
+                api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0
+            ) as client,
+            pytest.raises(RateLimitError) as exc_info,
+        ):
+            client.scan("text")
         assert exc_info.value.retry_after == 30
 
     @respx.mock
@@ -131,6 +146,10 @@ class TestErrorMapping:
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
             return_value=httpx.Response(500, json=ERROR_500_JSON)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client:
-            with pytest.raises(ServerError, match="unexpected"):
-                client.scan("text")
+        with (
+            ClassiFinder(
+                api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0
+            ) as client,
+            pytest.raises(ServerError, match="unexpected"),
+        ):
+            client.scan("text")

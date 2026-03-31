@@ -1,23 +1,23 @@
 """LangChain integration — ClassiFinderGuard Runnable."""
 
-from typing import Any, List, Optional
+from __future__ import annotations
 
-from pydantic import ConfigDict, PrivateAttr
+import logging
+from typing import Any
+
+from pydantic import ConfigDict, Field, PrivateAttr
 
 try:
     from langchain_core.runnables import RunnableSerializable
-except ImportError:
+except ImportError as _err:
     raise ImportError(
         "langchain-core is required for the LangChain integration. "
         "Install it with: pip install classifinder[langchain]"
-    )
+    ) from _err
 
-import logging
-
-from .._client import ClassiFinder
 from .._async_client import AsyncClassiFinder
-from .._exceptions import SecretsDetectedError, ClassiFinderError
-from .._models import ScanResult
+from .._client import ClassiFinder
+from .._exceptions import ClassiFinderError, SecretsDetectedError
 
 logger = logging.getLogger("classifinder.langchain")
 
@@ -36,10 +36,10 @@ class ClassiFinderGuard(RunnableSerializable[str, str]):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    api_key: Optional[str] = None
+    api_key: str | None = None
     mode: str = "redact"
     redaction_style: str = "label"
-    types: List[str] = ["all"]
+    types: list[str] = Field(default_factory=lambda: ["all"])
     min_confidence: float = 0.5
     base_url: str = "https://api.classifinder.ai"
     max_retries: int = 2
@@ -47,8 +47,8 @@ class ClassiFinderGuard(RunnableSerializable[str, str]):
     fail_open: bool = True
 
     # Lazy-initialized clients (private attrs)
-    _sync_client: Optional[ClassiFinder] = PrivateAttr(default=None)
-    _async_client: Optional[AsyncClassiFinder] = PrivateAttr(default=None)
+    _sync_client: ClassiFinder | None = PrivateAttr(default=None)
+    _async_client: AsyncClassiFinder | None = PrivateAttr(default=None)
 
     def _get_sync_client(self) -> ClassiFinder:
         if self._sync_client is None:

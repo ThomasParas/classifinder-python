@@ -6,14 +6,19 @@ import httpx
 import pytest
 import respx
 
-from conftest import TEST_API_KEY, TEST_BASE_URL, SCAN_RESPONSE_JSON, ERROR_429_JSON, ERROR_500_JSON
 from classifinder._client import ClassiFinder
 from classifinder._exceptions import (
-    RateLimitError,
-    ServerError,
+    APIConnectionError,
     AuthenticationError,
     ForbiddenError,
-    APIConnectionError,
+    ServerError,
+)
+from conftest import (
+    ERROR_429_JSON,
+    ERROR_500_JSON,
+    SCAN_RESPONSE_JSON,
+    TEST_API_KEY,
+    TEST_BASE_URL,
 )
 
 
@@ -50,37 +55,59 @@ class TestRetry:
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
             return_value=httpx.Response(500, json=ERROR_500_JSON)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=2) as client:
-            with pytest.raises(ServerError):
-                client.scan("text")
+        with (
+            ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=2) as client,
+            pytest.raises(ServerError),
+        ):
+            client.scan("text")
         assert mock_sleep.call_count == 2  # retried twice before giving up
 
     @respx.mock
     def test_no_retry_on_401(self):
+        error_json = {
+            "error": {
+                "code": "invalid_api_key",
+                "message": "bad",
+                "retry_after": None,
+            }
+        }
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
-            return_value=httpx.Response(401, json={"error": {"code": "invalid_api_key", "message": "bad", "retry_after": None}})
+            return_value=httpx.Response(401, json=error_json)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=2) as client:
-            with pytest.raises(AuthenticationError):
-                client.scan("text")
+        with (
+            ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=2) as client,
+            pytest.raises(AuthenticationError),
+        ):
+            client.scan("text")
 
     @respx.mock
     def test_no_retry_on_403(self):
+        error_json = {
+            "error": {
+                "code": "tier_limit_exceeded",
+                "message": "upgrade",
+                "retry_after": None,
+            }
+        }
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
-            return_value=httpx.Response(403, json={"error": {"code": "tier_limit_exceeded", "message": "upgrade", "retry_after": None}})
+            return_value=httpx.Response(403, json=error_json)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=2) as client:
-            with pytest.raises(ForbiddenError):
-                client.scan("text")
+        with (
+            ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=2) as client,
+            pytest.raises(ForbiddenError),
+        ):
+            client.scan("text")
 
     @respx.mock
     def test_no_retry_when_disabled(self):
         respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
             return_value=httpx.Response(500, json=ERROR_500_JSON)
         )
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client:
-            with pytest.raises(ServerError):
-                client.scan("text")
+        with (
+            ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client,
+            pytest.raises(ServerError),
+        ):
+            client.scan("text")
 
     @respx.mock
     @patch("classifinder._base.time.sleep")
@@ -97,7 +124,11 @@ class TestRetry:
 
     @respx.mock
     def test_network_timeout_raises_api_connection_error(self):
-        respx.post(f"{TEST_BASE_URL}/v1/scan").mock(side_effect=httpx.ConnectError("refused"))
-        with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client:
-            with pytest.raises(APIConnectionError):
-                client.scan("text")
+        respx.post(f"{TEST_BASE_URL}/v1/scan").mock(
+            side_effect=httpx.ConnectError("refused")
+        )
+        with (
+            ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL, max_retries=0) as client,
+            pytest.raises(APIConnectionError),
+        ):
+            client.scan("text")

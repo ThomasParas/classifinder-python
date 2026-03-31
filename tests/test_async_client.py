@@ -4,17 +4,17 @@ import httpx
 import pytest
 import respx
 
-from conftest import (
-    TEST_API_KEY,
-    TEST_BASE_URL,
-    SCAN_RESPONSE_JSON,
-    REDACT_RESPONSE_JSON,
-    TYPES_RESPONSE_JSON,
-    HEALTH_RESPONSE_JSON,
-    FEEDBACK_RESPONSE_JSON,
-)
 from classifinder._async_client import AsyncClassiFinder
 from classifinder._exceptions import AuthenticationError
+from conftest import (
+    FEEDBACK_RESPONSE_JSON,
+    HEALTH_RESPONSE_JSON,
+    REDACT_RESPONSE_JSON,
+    SCAN_RESPONSE_JSON,
+    TEST_API_KEY,
+    TEST_BASE_URL,
+    TYPES_RESPONSE_JSON,
+)
 
 
 class TestAsyncConstruction:

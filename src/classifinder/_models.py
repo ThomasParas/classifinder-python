@@ -1,6 +1,6 @@
 """Pydantic v2 response models for the ClassiFinder API."""
 
-from typing import List, Optional
+from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict
 
@@ -30,7 +30,7 @@ class Finding(_Base):
     confidence: float
     value_preview: str
     span: Span
-    context: Optional[str] = None
+    context: str | None = None
     is_likely_test_value: bool
     recommendation: str
     matched_pattern: str
@@ -51,14 +51,14 @@ class TypeInfo(_Base):
     provider: str
     severity: str
     description: str
-    tags: List[str] = []
+    tags: list[str] = []
 
 
 class ScanResult(_Base):
     request_id: str
     scan_time_ms: int
     findings_count: int
-    findings: List[Finding]
+    findings: list[Finding]
     summary: SeveritySummary
 
 
@@ -67,13 +67,13 @@ class RedactResult(_Base):
     scan_time_ms: int
     findings_count: int
     redacted_text: str
-    findings: List[RedactFinding]
+    findings: list[RedactFinding]
     summary: SeveritySummary
 
 
 class TypesResult(_Base):
     types_count: int
-    types: List[TypeInfo]
+    types: list[TypeInfo]
 
 
 class HealthResult(_Base):

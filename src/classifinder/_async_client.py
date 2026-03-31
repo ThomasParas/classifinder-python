@@ -1,6 +1,6 @@
 """Asynchronous ClassiFinder client."""
 
-from typing import List, Optional
+from __future__ import annotations
 
 import httpx
 
@@ -29,7 +29,7 @@ class AsyncClassiFinder:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         base_url: str = DEFAULT_BASE_URL,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float = DEFAULT_TIMEOUT,
@@ -46,7 +46,7 @@ class AsyncClassiFinder:
         """Close the underlying HTTP connection pool."""
         await self._client.aclose()
 
-    async def __aenter__(self) -> "AsyncClassiFinder":
+    async def __aenter__(self) -> AsyncClassiFinder:
         return self
 
     async def __aexit__(self, *args) -> None:
@@ -55,7 +55,7 @@ class AsyncClassiFinder:
     async def _request(self, method: str, path: str, **kwargs) -> httpx.Response:
         """Make an HTTP request with retry logic."""
         url = f"{self._base_url}{path}"
-        last_exc: Optional[Exception] = None
+        last_exc: Exception | None = None
 
         for attempt in range(self._max_retries + 1):
             try:
@@ -79,7 +79,7 @@ class AsyncClassiFinder:
     async def scan(
         self,
         text: str,
-        types: Optional[List[str]] = None,
+        types: list[str] | None = None,
         min_confidence: float = 0.5,
         include_context: bool = True,
     ) -> ScanResult:
@@ -96,7 +96,7 @@ class AsyncClassiFinder:
     async def redact(
         self,
         text: str,
-        types: Optional[List[str]] = None,
+        types: list[str] | None = None,
         min_confidence: float = 0.5,
         redaction_style: str = "label",
     ) -> RedactResult:
@@ -125,7 +125,7 @@ class AsyncClassiFinder:
         request_id: str,
         finding_id: str,
         feedback_type: str,
-        comment: Optional[str] = None,
+        comment: str | None = None,
     ) -> FeedbackResult:
         """Report a false positive or false negative."""
         body = {

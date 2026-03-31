@@ -1,20 +1,18 @@
 """Tests for Pydantic response models."""
 
-from conftest import (
-    SCAN_RESPONSE_JSON,
-    REDACT_RESPONSE_JSON,
-    TYPES_RESPONSE_JSON,
-    HEALTH_RESPONSE_JSON,
-    FEEDBACK_RESPONSE_JSON,
-)
 from classifinder._models import (
-    ScanResult,
-    RedactResult,
-    TypesResult,
-    HealthResult,
     FeedbackResult,
-    Finding,
-    RedactFinding,
+    HealthResult,
+    RedactResult,
+    ScanResult,
+    TypesResult,
+)
+from conftest import (
+    FEEDBACK_RESPONSE_JSON,
+    HEALTH_RESPONSE_JSON,
+    REDACT_RESPONSE_JSON,
+    SCAN_RESPONSE_JSON,
+    TYPES_RESPONSE_JSON,
 )
 
 

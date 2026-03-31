@@ -1,22 +1,22 @@
 """Tests for the synchronous ClassiFinder client."""
 
-import os
+import json
 
 import httpx
 import pytest
 import respx
 
-from conftest import (
-    TEST_API_KEY,
-    TEST_BASE_URL,
-    SCAN_RESPONSE_JSON,
-    REDACT_RESPONSE_JSON,
-    TYPES_RESPONSE_JSON,
-    HEALTH_RESPONSE_JSON,
-    FEEDBACK_RESPONSE_JSON,
-)
 from classifinder._client import ClassiFinder
 from classifinder._exceptions import AuthenticationError
+from conftest import (
+    FEEDBACK_RESPONSE_JSON,
+    HEALTH_RESPONSE_JSON,
+    REDACT_RESPONSE_JSON,
+    SCAN_RESPONSE_JSON,
+    TEST_API_KEY,
+    TEST_BASE_URL,
+    TYPES_RESPONSE_JSON,
+)
 
 
 class TestClientConstruction:
@@ -58,9 +58,10 @@ class TestScan:
             return_value=httpx.Response(200, json=SCAN_RESPONSE_JSON)
         )
         with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL) as client:
-            client.scan("test text", types=["aws_access_key"], min_confidence=0.8, include_context=False)
+            client.scan(
+                "test text", types=["aws_access_key"], min_confidence=0.8, include_context=False
+            )
         body = route.calls[0].request.content
-        import json
         parsed = json.loads(body)
         assert parsed["text"] == "test text"
         assert parsed["types"] == ["aws_access_key"]
@@ -95,7 +96,6 @@ class TestRedact:
         )
         with ClassiFinder(api_key=TEST_API_KEY, base_url=TEST_BASE_URL) as client:
             client.redact("text", redaction_style="mask")
-        import json
         parsed = json.loads(route.calls[0].request.content)
         assert parsed["redaction_style"] == "mask"
 
