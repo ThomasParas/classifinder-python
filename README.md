@@ -154,7 +154,7 @@ from classifinder import (
 
 ## What It Detects
 
-82 secret types across 7 categories: AWS, GCP, Azure, Stripe, GitHub, GitLab, Slack, Twilio, SendGrid, OpenAI, Anthropic, Cohere, database connection strings, SSH/PEM keys, JWTs, credit card numbers, and more.
+88 secret types across 7 categories: AWS, GCP, Azure, Stripe, GitHub, GitLab, Slack, Twilio, SendGrid, OpenAI, Anthropic, Cohere, database connection strings, SSH/PEM keys, JWTs, credit card numbers, and more.
 
 Full list: [`GET /v1/types`](https://api.classifinder.ai/docs#/default/list_types_v1_types_get)
 
