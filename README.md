@@ -169,6 +169,7 @@ Get your key at [classifinder.ai](https://classifinder.ai).
 - [API Documentation](https://api.classifinder.ai/docs)
 - [Open-source engine](https://github.com/ThomasParas/classifinder-engine) (MIT — audit the code that touches your data)
 - [MCP Server](https://pypi.org/project/classifinder-mcp/) for Claude Code / Cursor
+- [cfsniff](https://github.com/ThomasParas/cfsniff) — CLI tool that scans your machine for leaked secrets using this SDK (`pipx install cfsniff`)
 
 ## Disclaimer
 
