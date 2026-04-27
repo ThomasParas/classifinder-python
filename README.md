@@ -119,7 +119,7 @@ clean = await guard.ainvoke("check this async")
 |--------|----------|-------------|
 | `client.scan(text, ...)` | `POST /v1/scan` | Detect secrets, return findings |
 | `client.redact(text, ...)` | `POST /v1/redact` | Detect + replace secrets in text |
-| `client.get_types()` | `GET /v1/types` | List all 82 detectable secret types |
+| `client.get_types()` | `GET /v1/types` | List all 101 detectable secret types |
 | `client.health()` | `GET /v1/health` | Check API status |
 | `client.feedback(...)` | `POST /v1/feedback` | Report false positives/negatives |
 
@@ -135,6 +135,30 @@ client = ClassiFinder(
 ```
 
 Built-in retry with exponential backoff on rate limits (429), server errors (500), and timeouts.
+
+### High-throughput tuning (optional)
+
+For callers fanning out many concurrent requests (e.g., a CLI scanning thousands of files), the constructor accepts two extra kwargs:
+
+```python
+import httpx
+from classifinder import ClassiFinder
+
+client = ClassiFinder(
+    api_key="ss_live_...",
+    http2=True,                                  # enable HTTP/2 multiplexing
+    limits=httpx.Limits(                         # tune the httpx connection pool
+        max_connections=100,
+        max_keepalive_connections=20,
+    ),
+)
+```
+
+Both default to safe values (HTTP/1.1, httpx defaults), so existing callers see no behavior change. `http2=True` requires the optional `[http2]` extra:
+
+```bash
+pip install classifinder[http2]
+```
 
 ## Error Handling
 
