@@ -232,7 +232,12 @@ from classifinder import (
 
 **106 secret types** across 7 categories: AWS, GCP, Azure, Stripe, GitHub, GitLab, Slack, Twilio, SendGrid, OpenAI, Anthropic, Cohere, database connection strings, SSH/PEM keys, JWTs, credit card numbers, and more.
 
-**4 prompt-injection markers** (phase 1, high-precision): role-hijack control tokens (ChatML, Llama, Alpaca formats), tool-call tag injection (`<tool_use>`, `<function_call>`, `<thinking>`), known jailbreak personas (DAN, AIM, developer mode), and Unicode bidirectional overrides (Trojan Source / CVE-2021-42574). Filter to just these via `types=["pi_role_hijack_marker", "pi_tool_call_injection", "pi_jailbreak_persona", "pi_bidi_override"]`, or scan everything (default) to catch secrets and injection attempts in one pass.
+**10 prompt-injection markers** — 4 phase-1 high-precision + 6 phase-2 medium-precision:
+
+- **Phase 1** (structurally rare tokens, high confidence): role-hijack control tokens (ChatML / Llama / Alpaca), tool-call tag injection (`<tool_use>`, `<function_call>`, `<thinking>`), known jailbreak personas (DAN, AIM, developer mode), Unicode bidirectional override (Trojan Source / CVE-2021-42574).
+- **Phase 2** (natural-language markers): zero-width Unicode smuggling, fake assistant turn (`Assistant:`, `Claude:`, `GPT:` prefixes), prompt extraction (`reveal your system prompt`), instruction override (`ignore previous instructions`), persona override (`act as…` — context-gated, opt-in via `min_confidence=0.4`), encoded payload markers (base64 + decode hint).
+
+Validated against 5,000 real WildChat conversations: phase 1 + phase 2 catches 20.6% of in-the-wild jailbreaks (vs 12.2% with phase 1 alone — a 70% improvement). Filter to just injection markers via `types=` with the `pi_*` IDs, or scan everything (default) to catch secrets and injection attempts in one pass.
 
 Full list: [`GET /v1/types`](https://api.classifinder.ai/docs#/default/list_types_v1_types_get)
 
