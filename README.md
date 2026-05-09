@@ -230,7 +230,9 @@ from classifinder import (
 
 ## What It Detects
 
-106 secret types across 7 categories: AWS, GCP, Azure, Stripe, GitHub, GitLab, Slack, Twilio, SendGrid, OpenAI, Anthropic, Cohere, database connection strings, SSH/PEM keys, JWTs, credit card numbers, and more.
+**106 secret types** across 7 categories: AWS, GCP, Azure, Stripe, GitHub, GitLab, Slack, Twilio, SendGrid, OpenAI, Anthropic, Cohere, database connection strings, SSH/PEM keys, JWTs, credit card numbers, and more.
+
+**4 prompt-injection markers** (phase 1, high-precision): role-hijack control tokens (ChatML, Llama, Alpaca formats), tool-call tag injection (`<tool_use>`, `<function_call>`, `<thinking>`), known jailbreak personas (DAN, AIM, developer mode), and Unicode bidirectional overrides (Trojan Source / CVE-2021-42574). Filter to just these via `types=["pi_role_hijack_marker", "pi_tool_call_injection", "pi_jailbreak_persona", "pi_bidi_override"]`, or scan everything (default) to catch secrets and injection attempts in one pass.
 
 Full list: [`GET /v1/types`](https://api.classifinder.ai/docs#/default/list_types_v1_types_get)
 
