@@ -230,7 +230,7 @@ from classifinder import (
 
 ## What It Detects
 
-**106 secret types** across 7 categories: AWS, GCP, Azure, Stripe, GitHub, GitLab, Slack, Twilio, SendGrid, OpenAI, Anthropic, Cohere, database connection strings, SSH/PEM keys, JWTs, credit card numbers, and more.
+**106 secret types** across 7 categories: AWS, GCP, Azure, Vercel, Fly.io, Doppler, Vault and other cloud/infra; Stripe, PayPal, Shopify, credit cards (Luhn-validated); GitHub, GitLab, Bitbucket, npm, PyPI, RubyGems; Slack, Twilio, SendGrid, Datadog, Sentry, PagerDuty, Notion, Linear; PostgreSQL/MySQL/MongoDB/Redis/Supabase connection strings; SSH/PEM private keys; JWTs; and **18 AI/LLM provider keys** (OpenAI, Anthropic user + admin, Cohere, xAI, Mistral, DeepSeek, HuggingFace, Replicate, Groq, ElevenLabs, AssemblyAI, Deepgram, LangFuse, AWS Bedrock long + short-lived, Vercel AI Gateway, Weights & Biases).
 
 **10 prompt-injection markers** — 4 phase-1 high-precision + 6 phase-2 medium-precision:
 
